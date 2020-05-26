@@ -25,6 +25,8 @@ class VecGame {
     std::vector<struct libenv_space> info_spaces;
 
     int num_envs;
+    int num_levels;
+    int start_level;
     int num_joint_games;
     int num_actions;
 
@@ -37,6 +39,8 @@ class VecGame {
     void step_async(const std::vector<int32_t> &acts, const std::vector<std::vector<void *>> &obs, const std::vector<std::vector<void *>> &infos, float *rews, uint8_t *dones);
     void step_wait();
     bool render(const std::string &mode, const std::vector<void *> &arrays);
+    void reset_start_level(int level_seed);
+
 
   private:
     // this mutex synchronizes access to pending_games and game->is_waiting_for_step

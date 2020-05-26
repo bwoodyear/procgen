@@ -101,6 +101,11 @@ bool libenv_render(libenv_venv *env, const char *mode, void **frames) {
     return venv->render(std::string(mode), arrays);
 }
 
+void libenv_reset_start_level(libenv_venv *env, int start_level) {
+    auto venv = (VecGame *)(env);
+    venv->reset_start_level(start_level);
+}
+
 void libenv_close(libenv_venv *env) {
     auto venv = (VecGame *)(env);
     delete venv;
@@ -172,8 +177,6 @@ VecGame::VecGame(int _nenvs, VecOptions opts) {
     games.resize(num_envs);
     std::string env_name;
 
-    int num_levels = 0;
-    int start_level = -1;
     num_actions = -1;
 
     int rand_seed = 0;
@@ -411,3 +414,22 @@ bool VecGame::render(const std::string &mode,
     }
     return true;
 }
+
+// Custom functions here
+void VecGame::reset_start_level(int level_seed) {
+    start_level = level_seed;
+
+    int level_seed_low = level_seed;
+    int level_seed_high = level_seed + num_levels;
+
+    for (int n = 0; n < num_envs; n++) {
+        const auto &game = games[n];
+        game->level_seed_high = level_seed_high;
+        game->level_seed_low = level_seed_low;
+        game->is_waiting_for_step = false;
+        game->game_init();
+        game->reset();
+    }
+}
+
+
