@@ -551,14 +551,14 @@ class CVecEnv:
         else:
             return self
 
-    def seed(self, seed=None):
+    def seed(self, seed=None, env_idx=-1):
         """
         Seed the environment, this isn't used by VecEnvs but is part of the Gym Env API
         """
-        self.reset_start_level(seed)
+        self.reset_start_level(seed, env_idx)
 
-    def reset_start_level(self, level_seed):
-        self._c_lib.libenv_reset_start_level(self._c_env, level_seed)
+    def reset_start_level(self, level_seed, env_idx=-1):
+        self._c_lib.libenv_reset_start_level(self._c_env, level_seed, env_idx)
 
 
     def __del__(self):
