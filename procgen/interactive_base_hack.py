@@ -203,6 +203,10 @@ class Interactive(abc.ABC):
             if not self._sync or act is not None:
                 obs, rew, done, info = self._env.step(act)
 
+                if keycodes.LEFT in keys_pressed:
+                    self._env._venv.seed(50,0)
+                    obs = self._env._venv.reset_at_index(0)
+
                 self._image = self.get_image(obs, self._env)
                 if self._movie_writer is not None:
                     self._movie_writer.append_data(self._image)
@@ -240,6 +244,7 @@ class Interactive(abc.ABC):
 
                 if done:
                     print(f"final info={self._last_info}")
+                    # self._env.seed(40, 0)
                     obs = self._env.reset()
                     self._image = self.get_image(obs, self._env)
                     self._episode_steps = 0

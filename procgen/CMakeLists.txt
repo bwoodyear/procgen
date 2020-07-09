@@ -1,7 +1,5 @@
 cmake_minimum_required(VERSION 3.10 FATAL_ERROR)
 
-set(CMAKE_CXX_COMPILER "/share/apps/gcc-9.2.0/bin/g++")
-
 project(codegen)
 
 set(CMAKE_CXX_STANDARD 17)

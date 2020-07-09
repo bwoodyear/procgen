@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import argparse
 
-from .interactive_base import Interactive
+from .interactive_base_hack import Interactive
 from procgen import ProcgenEnv
 from .env import ENV_NAMES
 from .scalarize_hack import Scalarize
@@ -14,7 +14,7 @@ class ProcgenInteractive(Interactive):
 
     def __init__(self, vision, **kwargs):
         self._vision = vision
-        venv = ProcgenEnv(num_envs=1, **kwargs)
+        venv = ProcgenEnv(num_envs=2, **kwargs)
         self.combos = list(venv.unwrapped.combos)
         self.last_keys = []
         env = Scalarize(venv)

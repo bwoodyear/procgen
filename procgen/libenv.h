@@ -189,6 +189,8 @@ LIBENV_API bool libenv_render(libenv_venv *handle, const char *mode, void **fram
 
 LIBENV_API void libenv_reset_start_level(libenv_venv *handle, int level_seed, int env_idx);
 
+LIBENV_API void libenv_reset_at_index(libenv_venv *handle, struct libenv_step *step, int env_idx);
+
 // libenv_close closes the environment and frees any resources associated with it
 LIBENV_API void libenv_close(libenv_venv *handle);
 

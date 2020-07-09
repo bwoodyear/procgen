@@ -560,6 +560,14 @@ class CVecEnv:
     def reset_start_level(self, level_seed, env_idx=-1):
         self._c_lib.libenv_reset_start_level(self._c_env, level_seed, env_idx)
 
+    def reset_at_index(self, env_idx) -> Dict[str, np.ndarray]:
+        """
+        Reset the environment and return the first observation
+        """
+        self._state = STATE_WAIT_ACT
+
+        self._c_lib.libenv_reset_at_index(self._c_env, self._c_step, env_idx)
+        return self._maybe_copy_dict(self._observations)
 
     def __del__(self):
         self.close()

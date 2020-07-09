@@ -61,9 +61,9 @@ class Scalarize:
         else:
             action = np.expand_dims(action, axis=0)
         obs, rews, dones, infos = self._venv.step(action)
+        
         if dones[self.env_idx]:
-            # self._venv.seed(40, self.env_idx)
-            # self._waiting_for_reset = True
+            self._waiting_for_reset = True
             self._next_obs = obs
             obs = self._previous_obs
         else:

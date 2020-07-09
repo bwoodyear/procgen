@@ -75,6 +75,13 @@ void libenv_reset(libenv_venv *env, struct libenv_step *step) {
     venv->reset(obs);
 }
 
+void libenv_reset_at_index(libenv_venv *env, struct libenv_step *step, int env_idx) {
+    auto venv = (VecGame *)(env);
+    auto obs = convert_bufs(step->obs, venv->num_envs,
+                            venv->observation_spaces.size());
+    venv->reset_at_index(obs, env_idx);
+}
+
 void libenv_step_async(libenv_venv *env, const void **acts,
                        struct libenv_step *step) {
     auto venv = (VecGame *)(env);
@@ -442,4 +449,10 @@ void VecGame::reset_start_level(int level_seed, int env_index) {
     }
 }
 
-
+void VecGame::reset_at_index(const std::vector<std::vector<void *>> &obs, int env_idx) {
+    first_reset = false;
+    wait_for_stepping_threads();
+    const auto &game = games[env_idx];
+    game->render_to_buf(game->render_buf, RES_W, RES_H, false);
+    bgr32_to_rgb888(obs[env_idx][0], game->render_buf, RES_W, RES_H);
+}
