@@ -41,6 +41,7 @@ class VecGame {
     bool render(const std::string &mode, const std::vector<void *> &arrays);
     void reset_start_level(int level_seed, int env_idx);
     void reset_at_index(const std::vector<std::vector<void *>> &obs, int env_idx);
+    void observe(const std::vector<std::vector<void *>> &obs);
 
 
   private:

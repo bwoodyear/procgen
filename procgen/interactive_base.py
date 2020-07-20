@@ -19,8 +19,6 @@ from pyglet import gl
 from pyglet.window import key as keycodes
 import imageio
 
-import png
-
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 CHAR_SIZE = 32
 FONT = None
