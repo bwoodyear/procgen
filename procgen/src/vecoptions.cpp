@@ -2,6 +2,7 @@
 #include "cpp-utils.h"
 
 VecOptions::VecOptions(const struct libenv_options options) {
+    _options = options;
     m_options = std::vector<libenv_option>(options.items, options.items + options.count);
 }
 

@@ -14,6 +14,9 @@ This implements the libenv interface and manages a vector of Game instances
 #include <thread>
 #include <list>
 
+#include "randgen.h"
+#include "vecoptions.h"
+
 class VecOptions;
 class Game;
 
@@ -29,6 +32,8 @@ class VecGame {
     int start_level;
     int num_joint_games;
     int num_actions;
+    int rand_seed;
+    int num_threads;
 
     std::vector<std::shared_ptr<Game>> games;
 
@@ -39,10 +44,9 @@ class VecGame {
     void step_async(const std::vector<int32_t> &acts, const std::vector<std::vector<void *>> &obs, const std::vector<std::vector<void *>> &infos, float *rews, uint8_t *dones);
     void step_wait();
     bool render(const std::string &mode, const std::vector<void *> &arrays);
-    void reset_start_level(int level_seed, int env_idx);
-    void reset_at_index(const std::vector<std::vector<void *>> &obs, int env_idx);
+    void reset_start_level(int level_seed, int env_idx, const char *env_name);
+    void reset_at_index(const std::vector<std::vector<void *>> &obs, int env_idx, const char *env_name);
     void observe(const std::vector<std::vector<void *>> &obs);
-
 
   private:
     // this mutex synchronizes access to pending_games and game->is_waiting_for_step
@@ -57,4 +61,11 @@ class VecGame {
     bool time_to_die = false;
     bool first_reset = true;
     void wait_for_stepping_threads();
+
+    int level_seed_high;
+    int level_seed_low;
+    struct libenv_options m_options;
+    VecOptions init_options(struct libenv_options options, std::string env_name);
+
+    RandGen game_level_seed_gen;
 };

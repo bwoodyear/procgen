@@ -187,9 +187,9 @@ LIBENV_API void libenv_step_wait(libenv_venv *handle);
 // that they are done with the environment
 LIBENV_API bool libenv_render(libenv_venv *handle, const char *mode, void **frames);
 
-LIBENV_API void libenv_reset_start_level(libenv_venv *handle, int level_seed, int env_idx);
+LIBENV_API void libenv_reset_start_level(libenv_venv *handle, int level_seed, int env_idx, const char *env_name);
 
-LIBENV_API void libenv_reset_at_index(libenv_venv *handle, struct libenv_step *step, int env_idx);
+LIBENV_API void libenv_reset_at_index(libenv_venv *handle, struct libenv_step *step, int env_idx, const char *env_name);
 
 LIBENV_API void libenv_observe(libenv_venv *handle, struct libenv_step *step);
 

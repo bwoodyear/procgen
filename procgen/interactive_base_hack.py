@@ -19,8 +19,6 @@ from pyglet import gl
 from pyglet.window import key as keycodes
 import imageio
 
-import png
-
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 CHAR_SIZE = 32
 FONT = None
@@ -245,6 +243,7 @@ class Interactive(abc.ABC):
                 if done:
                     print(f"final info={self._last_info}")
                     # self._env.seed(40, 0)
+                    self._env._venv.reset_at_index(0, env_name=np.random.choice(['coinrun', 'bigfish', 'ninja']))
                     obs = self._env.reset()
                     self._image = self.get_image(obs, self._env)
                     self._episode_steps = 0

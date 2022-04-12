@@ -19,6 +19,7 @@ class VecOptions {
     void consume_int(std::string name, int32_t *value);
     void consume_bool(std::string name, bool *value);
     void ensure_empty();
+    struct libenv_options _options;
 
   private:
     std::vector<libenv_option> m_options;

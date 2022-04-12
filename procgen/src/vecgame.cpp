@@ -75,11 +75,11 @@ void libenv_reset(libenv_venv *env, struct libenv_step *step) {
     venv->reset(obs);
 }
 
-void libenv_reset_at_index(libenv_venv *env, struct libenv_step *step, int env_idx) {
+void libenv_reset_at_index(libenv_venv *env, struct libenv_step *step, int env_idx, const char *env_name) {
     auto venv = (VecGame *)(env);
     auto obs = convert_bufs(step->obs, venv->num_envs,
                             venv->observation_spaces.size());
-    venv->reset_at_index(obs, env_idx);
+    venv->reset_at_index(obs, env_idx, env_name);
 }
 
 void libenv_observe(libenv_venv *env, struct libenv_step *step) {
@@ -115,9 +115,9 @@ bool libenv_render(libenv_venv *env, const char *mode, void **frames) {
     return venv->render(std::string(mode), arrays);
 }
 
-void libenv_reset_start_level(libenv_venv *env, int start_level, int env_idx) {
+void libenv_reset_start_level(libenv_venv *env, int start_level, int env_idx, const char *env_name) {
     auto venv = (VecGame *)(env);
-    venv->reset_start_level(start_level, env_idx);
+    venv->reset_start_level(start_level, env_idx, env_name);
 }
 
 void libenv_close(libenv_venv *env) {
@@ -193,9 +193,11 @@ VecGame::VecGame(int _nenvs, VecOptions opts) {
 
     num_actions = -1;
 
-    int rand_seed = 0;
-    int num_threads = 4;
+    rand_seed = 0;
+    num_threads = 4;
     std::string resource_root;
+
+    m_options = opts._options; // original options struct
 
     opts.consume_string("env_name", &env_name);
     opts.consume_int("num_levels", &num_levels);
@@ -225,8 +227,8 @@ VecGame::VecGame(int _nenvs, VecOptions opts) {
     fassert(num_levels >= 0);
     fassert(start_level >= 0);
 
-    int level_seed_low = 0;
-    int level_seed_high = 0;
+    level_seed_low = 0;
+    level_seed_high = 0;
 
     if (num_levels == 0) {
         level_seed_low = 0;
@@ -242,7 +244,7 @@ VecGame::VecGame(int _nenvs, VecOptions opts) {
 
     fassert(num_envs % num_joint_games == 0);
 
-    RandGen game_level_seed_gen;
+    // RandGen game_level_seed_gen;
     game_level_seed_gen.seed(rand_seed);
 
     for (int n = 0; n < num_envs; n++) {
@@ -439,14 +441,37 @@ bool VecGame::render(const std::string &mode,
 }
 
 // Custom functions here
-void VecGame::reset_start_level(int level_seed, int env_index) {
+void VecGame::reset_start_level(int level_seed, int env_idx, const char *env_name) {
+    // Reset env at index if name is provided
+    std::string env_name_str = std::string(env_name);
+    if (env_name_str.length() > 0 && env_idx < num_envs) {
+        VecOptions options = init_options(m_options, env_name_str);
+
+        games[env_idx] = globalGameRegistry->at(env_name_str)();
+        games[env_idx]->level_seed_rand_gen.seed(level_seed);
+        games[env_idx]->level_seed_high = level_seed_high;
+        games[env_idx]->level_seed_low = level_seed_low;
+        games[env_idx]->game_n = env_idx;
+        games[env_idx]->is_waiting_for_step = false;
+
+        if (games[env_idx]->fixed_asset_seed == 0) {
+            auto hashed = hash_str_uint32(env_name_str);
+            games[env_idx]->fixed_asset_seed = int(hashed);
+        }
+
+        games[env_idx]->game_init();
+        games[env_idx]->reset();
+        games[env_idx]->parse_options(env_name_str, options);
+    }
+
+    // Set level seed
     start_level = level_seed;
 
-    int level_seed_low = level_seed;
-    int level_seed_high = level_seed + 1;
+    level_seed_low = level_seed;
+    level_seed_high = level_seed + 1;
 
-    if (env_index >= 0 && env_index < num_envs) {
-        const auto &game = games[env_index];
+    if (env_idx >= 0 && env_idx < num_envs) {
+        const auto &game = games[env_idx];
         game->level_seed_high = level_seed_high;
         game->level_seed_low = level_seed_low;
         game->is_waiting_for_step = false;
@@ -465,10 +490,48 @@ void VecGame::reset_start_level(int level_seed, int env_index) {
     }
 }
 
-void VecGame::reset_at_index(const std::vector<std::vector<void *>> &obs, int env_idx) {
+void VecGame::reset_at_index(const std::vector<std::vector<void *>> &obs, int env_idx, const char *env_name) {
+    // Reset env at index if name is provided
+    std::string env_name_str = std::string(env_name);
+    if (env_name_str.length() > 0 && env_idx < num_envs) {
+        VecOptions options = init_options(m_options, env_name_str);
+
+        games[env_idx] = globalGameRegistry->at(env_name_str)();
+        games[env_idx]->level_seed_rand_gen.seed(game_level_seed_gen.randint());
+        games[env_idx]->level_seed_high = level_seed_high;
+        games[env_idx]->level_seed_low = level_seed_low;
+        games[env_idx]->game_n = env_idx;
+        games[env_idx]->is_waiting_for_step = false;
+
+        if (games[env_idx]->fixed_asset_seed == 0) {
+            auto hashed = hash_str_uint32(env_name_str);
+            games[env_idx]->fixed_asset_seed = int(hashed);
+        }
+
+        games[env_idx]->parse_options(env_name_str, options);
+        games[env_idx]->game_init();
+        games[env_idx]->reset();
+    }
+
     first_reset = false;
     wait_for_stepping_threads();
     const auto &game = games[env_idx];
     game->render_to_buf(game->render_buf, RES_W, RES_H, false);
     bgr32_to_rgb888(obs[env_idx][0], game->render_buf, RES_W, RES_H);
+}
+
+
+VecOptions VecGame::init_options(struct libenv_options options, std::string env_name) {
+    VecOptions opt = VecOptions(m_options);
+    std::string resource_root = global_resource_root.toStdString();
+
+    opt.consume_string("env_name", &env_name);
+    opt.consume_int("num_levels", &num_levels);
+    opt.consume_int("start_level", &start_level);
+    opt.consume_int("num_actions", &num_actions);
+    opt.consume_int("rand_seed", &rand_seed);
+    opt.consume_int("num_threads", &num_threads);
+    opt.consume_string("resource_root", &resource_root);
+
+    return opt;
 }

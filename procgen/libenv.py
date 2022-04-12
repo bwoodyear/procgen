@@ -557,16 +557,18 @@ class CVecEnv:
         """
         self.reset_start_level(seed, env_idx)
 
-    def reset_start_level(self, level_seed, env_idx=-1):
-        self._c_lib.libenv_reset_start_level(self._c_env, level_seed, env_idx)
+    def reset_start_level(self, level_seed, env_idx=-1, env_name=''):
+        env_name = env_name.encode('ascii')
+        self._c_lib.libenv_reset_start_level(self._c_env, level_seed, env_idx, env_name)
 
-    def reset_at_index(self, env_idx) -> Dict[str, np.ndarray]:
+    def reset_at_index(self, env_idx, env_name='') -> Dict[str, np.ndarray]:
         """
         Reset the environment and return the first observation
         """
+        env_name = env_name.encode('ascii')
         self._state = STATE_WAIT_ACT
 
-        self._c_lib.libenv_reset_at_index(self._c_env, self._c_step, env_idx)
+        self._c_lib.libenv_reset_at_index(self._c_env, self._c_step, env_idx, env_name)
         return self._maybe_copy_dict(self._observations)
 
     def observe(self) -> Dict[str, np.ndarray]:
