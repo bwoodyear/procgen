@@ -84,7 +84,9 @@ class BaseProcgenEnv(CVecEnv):
 
         lib_dir = os.path.join(SCRIPT_DIR, "data", "prebuilt")
         if os.path.exists(lib_dir):
-            assert any([os.path.exists(os.path.join(lib_dir, name)) for name in ["libenv.so", "libenv.dylib", "env.dll"]]), "package is installed, but the prebuilt environment library is missing"
+            assert any([os.path.exists(os.path.join(lib_dir, name)) for name in 
+                        ["libenv.so", "libenv.dylib", "env.dll"]]), \
+                "package is installed, but the prebuilt environment library is missing"
             assert not debug, "debug has no effect for pre-compiled library"
         else:
             # only compile if we don't find a pre-built binary
@@ -116,7 +118,8 @@ class BaseProcgenEnv(CVecEnv):
             lib_dir=lib_dir, num_envs=num_envs, debug=debug, options=options
         )
 
-    def get_combos(self):
+    @staticmethod
+    def get_combos():
         return [
             ("LEFT", "DOWN"),
             ("LEFT",),
